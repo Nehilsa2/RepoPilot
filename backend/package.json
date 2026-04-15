@@ -12,6 +12,7 @@
     "dev": "nodemon server.js"
   },
   "dependencies": {
+    "dotenv": "^17.4.2",
     "eslint": "^8.57.1",
     "mongoose": "^9.4.1",
     "p-limit": "^7.3.0"
