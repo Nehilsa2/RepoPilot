@@ -162,9 +162,9 @@ const toIssueCandidates = (analysisResults) => {
       const normalized = normalizeIssue(item);
 
       issues.push({
-        title: `[BugFixer] Issue in ${fileName}`,
-        body: `Detected by BugFixer AI.\n\nFile: ${fileName}\n\nSummary:\n${result.summary || 'No summary available.'}\n\nProblem:\n${normalized.message}\n\nSuggested fix:\n${normalized.fix}`,
-        labels: ['bugfixer-ai', 'bugfixer-issue']
+        title: `[RepoAnalyzer] Issue in ${fileName}`,
+        body: `Detected by RepoAnalyzer AI.\n\nFile: ${fileName}\n\nSummary:\n${result.summary || 'No summary available.'}\n\nProblem:\n${normalized.message}\n\nSuggested fix:\n${normalized.fix}`,
+        labels: ['RepoAnalyzer-ai', 'RepoAnalyzer-issue']
       });
     }
   }

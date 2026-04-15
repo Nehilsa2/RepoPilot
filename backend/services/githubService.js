@@ -3,7 +3,7 @@ const axios = require('axios');
 const getHeaders = (token) => ({
   Authorization: `token ${token}`,
   Accept: 'application/vnd.github+json',
-  'User-Agent': 'bugfixer-ai'
+  'User-Agent': 'RepoAnalyzer-ai'
 });
 
 const getRepoDefaultBranch = async (owner, repo, token) => {

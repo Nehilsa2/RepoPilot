@@ -1,6 +1,16 @@
 import { getSessionToken } from "./auth";
 
-export const BASE_URL = "http://localhost:5000/api";
+const LOCAL_API_BASE_URL = "http://localhost:5000/api";
+const DEPLOYED_API_BASE_URL = "https://repoanalyzer-6yhf.onrender.com/api";
+
+const isLocalFrontend =
+  typeof window !== "undefined" &&
+  ["localhost", "127.0.0.1"].includes(window.location.hostname);
+
+const configuredApiBase = import.meta.env.VITE_API_BASE_URL?.trim();
+const selectedBase = configuredApiBase || (isLocalFrontend ? LOCAL_API_BASE_URL : DEPLOYED_API_BASE_URL);
+
+export const BASE_URL = selectedBase.endsWith("/api") ? selectedBase : `${selectedBase}/api`;
 
 const buildHeaders = () => {
   const token = getSessionToken();
@@ -25,7 +35,8 @@ const parseJsonOrThrow = async (res) => {
 };
 
 export const startGithubLogin = (redirectPath = "/") => {
-  window.location.href = `${BASE_URL}/auth/github?redirect=${encodeURIComponent(redirectPath)}`;
+  const frontendOrigin = typeof window !== "undefined" ? window.location.origin : "";
+  window.location.href = `${BASE_URL}/auth/github?redirect=${encodeURIComponent(redirectPath)}&frontendOrigin=${encodeURIComponent(frontendOrigin)}`;
 };
 
 export const getCurrentUser = async () => {
