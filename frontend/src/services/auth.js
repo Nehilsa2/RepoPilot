@@ -1,5 +1,5 @@
-const SESSION_TOKEN_KEY = "RepoAnalyzer_session_token";
-const GITHUB_USER_KEY = "RepoAnalyzer_github_user";
+const SESSION_TOKEN_KEY = "RepoPilot_session_token";
+const GITHUB_USER_KEY = "RepoPilot_github_user";
 
 export const getSessionToken = () => localStorage.getItem(SESSION_TOKEN_KEY);
 
