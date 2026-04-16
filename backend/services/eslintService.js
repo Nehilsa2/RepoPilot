@@ -1,5 +1,23 @@
 const { ESLint } = require("eslint");
 
+const SUPPORTED_LINT_EXTENSIONS = new Set([
+  ".js",
+  ".jsx",
+  ".mjs",
+  ".cjs",
+  ".ts",
+  ".tsx"
+]);
+
+const getExtension = (fileName = "") => {
+  const lastDot = fileName.lastIndexOf(".");
+  if (lastDot === -1) {
+    return "";
+  }
+
+  return fileName.slice(lastDot).toLowerCase();
+};
+
 const eslint = new ESLint({
   overrideConfig: {
     parserOptions: {
@@ -14,9 +32,15 @@ const eslint = new ESLint({
   useEslintrc: false,
 });
 
-const runESLint = async (code) => {
+const runESLint = async (code, fileName = "") => {
+  const extension = getExtension(fileName);
+
+  if (!SUPPORTED_LINT_EXTENSIONS.has(extension)) {
+    return [];
+  }
+
   try {
-    const results = await eslint.lintText(code);
+    const results = await eslint.lintText(code, { filePath: `file${extension || '.js'}` });
 
     const messages = results[0].messages;
 

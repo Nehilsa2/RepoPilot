@@ -55,7 +55,7 @@ const analyzeFiles = async (req, res) => {
           const content = await getFileContent(owner, repo, file, req.githubToken);
 
           // ⚡ ESLint (cheap filtering)
-          const eslintIssues = await runESLint(content);
+          const eslintIssues = await runESLint(content, file);
 
           // ⚡ Smart chunk selection
           const chunks = selectImportantChunks(content, eslintIssues);
