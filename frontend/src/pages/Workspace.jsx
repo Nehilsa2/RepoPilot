@@ -200,9 +200,7 @@ export default function Workspace() {
     }
   };
 
-  const loginHref = buildGithubLoginHref(
-    repoUrl ? `/workspace?repo=${encodeURIComponent(repoUrl)}` : "/workspace"
-  );
+  const loginHref = buildGithubLoginHref();
 
   const handleLogout = async () => {
     try {

@@ -38,13 +38,11 @@ const parseJsonOrThrow = async (res) => {
 };
 
 export const startGithubLogin = (redirectPath = "/") => {
-  const frontendOrigin = typeof window !== "undefined" ? window.location.origin : "";
-  window.location.href = `${BASE_URL}/auth/github?redirect=${encodeURIComponent(redirectPath)}&frontendOrigin=${encodeURIComponent(frontendOrigin)}`;
+  window.location.href = `${BASE_URL}/auth/github`;
 };
 
-export const buildGithubLoginHref = (redirectPath = "/") => {
-  const frontendOrigin = typeof window !== "undefined" ? window.location.origin : "";
-  return `${authApiOrigin}/api/auth/github?redirect=${encodeURIComponent(redirectPath)}&frontendOrigin=${encodeURIComponent(frontendOrigin)}`;
+export const buildGithubLoginHref = () => {
+  return `${authApiOrigin}/api/auth/github`;
 };
 
 export const getCurrentUser = async () => {

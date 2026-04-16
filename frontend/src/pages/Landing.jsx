@@ -52,15 +52,7 @@ export default function Landing() {
     bootstrapAuth();
   }, []);
 
-  const workspaceRedirectPath = useMemo(() => {
-    if (!repoUrl.trim()) {
-      return "/workspace";
-    }
-
-    return `/workspace?repo=${encodeURIComponent(repoUrl.trim())}`;
-  }, [repoUrl]);
-
-  const loginHref = useMemo(() => buildGithubLoginHref(workspaceRedirectPath), [workspaceRedirectPath]);
+  const loginHref = useMemo(() => buildGithubLoginHref(), []);
 
   const handleStart = (e) => {
     e.preventDefault();
