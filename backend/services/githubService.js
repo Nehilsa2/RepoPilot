@@ -107,11 +107,33 @@ const createIssue = async (owner, repo, token, payload) => {
   };
 };
 
+const isRateLimitError = (error) => {
+  if (!error.response) return false;
+  
+  const status = error.response.status;
+  const message = error.response.data?.message || '';
+  
+  // GitHub returns 403 for rate limit exceeded
+  return status === 403 && message.includes('API rate limit exceeded');
+};
+
+const extractRateLimitInfo = (error) => {
+  if (!error.response?.headers) return null;
+  
+  return {
+    limit: parseInt(error.response.headers['x-ratelimit-limit'] || 0),
+    remaining: parseInt(error.response.headers['x-ratelimit-remaining'] || 0),
+    reset: parseInt(error.response.headers['x-ratelimit-reset'] || 0)
+  };
+};
+
 module.exports = {
   getRepoTree,
   getFileContent,
   getUserRepos,
   getAuthenticatedUser,
   getRepoAccess,
-  createIssue
+  createIssue,
+  isRateLimitError,
+  extractRateLimitInfo
 };

@@ -1,5 +1,5 @@
 const parseRepoUrl = require('../utils/parseRepo');
-const { getFileContent, createIssue, getRepoAccess } = require('../services/githubService');
+const { getFileContent, createIssue, getRepoAccess, isRateLimitError, extractRateLimitInfo } = require('../services/githubService');
 const { analyzeCode } = require('../services/aiService');
 
 const { runESLint } = require('../services/eslintService');
@@ -240,18 +240,51 @@ const raiseIssues = async (req, res) => {
     }
 
     const created = [];
+    let rateLimitExceeded = false;
+    let rateLimitInfo = null;
+    let failedCount = 0;
 
     for (const candidate of candidates) {
-      const issue = await createIssue(owner, repo, req.githubToken, candidate);
-      created.push(issue);
+      try {
+        const issue = await createIssue(owner, repo, req.githubToken, candidate);
+        created.push(issue);
+      } catch (error) {
+        if (isRateLimitError(error)) {
+          rateLimitExceeded = true;
+          rateLimitInfo = extractRateLimitInfo(error);
+          failedCount = candidates.length - created.length;
+          console.warn(`GitHub API rate limit exceeded. ${failedCount} issues could not be created.`);
+          break;
+        } else {
+          console.error('Error creating issue:', error.message);
+          failedCount++;
+        }
+      }
     }
 
-    return res.json({
+    const response = {
       totalRaised: created.length,
-      issues: created
-    });
+      issues: created,
+      ...(rateLimitExceeded && {
+        rateLimitExceeded: true,
+        failedCount: failedCount,
+        message: `Created ${created.length} issue${created.length !== 1 ? 's' : ''} before hitting GitHub API rate limit. ${failedCount} issue${failedCount !== 1 ? 's' : ''} could not be created.`,
+        rateLimitReset: rateLimitInfo?.reset || null
+      })
+    };
+
+    return res.json(response);
   } catch (error) {
     console.error('Raise Issues Error:', error.message);
+
+    if (isRateLimitError(error)) {
+      const rateLimitInfo = extractRateLimitInfo(error);
+      return res.status(429).json({
+        error: 'GitHub API rate limit exceeded. Please wait before creating more issues.',
+        code: 'GITHUB_RATE_LIMIT_EXCEEDED',
+        rateLimitReset: rateLimitInfo?.reset || null
+      });
+    }
 
     return res.status(500).json({
       error: 'Error raising issues in repository'

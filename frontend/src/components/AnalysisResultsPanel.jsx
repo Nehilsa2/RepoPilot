@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { AlertCircle, CheckCircle, ChevronDown, Loader, Wrench } from "lucide-react";
+import RaiseIssuesConfirmModal from "./RaiseIssuesConfirmModal";
+import IssueSelectionModal from "./IssueSelectionModal";
 
 export default function AnalysisResultsPanel({
   results,
@@ -10,6 +12,9 @@ export default function AnalysisResultsPanel({
   issuePermissionMessage,
 }) {
   const [openFileName, setOpenFileName] = useState(null);
+  const [showSelectionModal, setShowSelectionModal] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [selectedIssuesToRaise, setSelectedIssuesToRaise] = useState([]);
 
   useEffect(() => {
     setOpenFileName(null);
@@ -17,6 +22,33 @@ export default function AnalysisResultsPanel({
 
   const toggleFile = (fileName) => {
     setOpenFileName((prev) => (prev === fileName ? null : fileName));
+  };
+
+  const getTotalIssueCount = () => {
+    if (!results || !Array.isArray(results)) return 0;
+    return results.reduce((total, file) => {
+      const issues = Array.isArray(file.issues)
+        ? file.issues
+        : Array.isArray(file.analysis?.issues)
+          ? file.analysis.issues
+          : [];
+      return total + issues.length;
+    }, 0);
+  };
+
+  const handleRaiseIssuesClick = () => {
+    setShowSelectionModal(true);
+  };
+
+  const handleIssueSelectionConfirm = (selectedIssues) => {
+    setSelectedIssuesToRaise(selectedIssues);
+    setShowSelectionModal(false);
+    setShowConfirmModal(true);
+  };
+
+  const handleConfirmRaiseIssues = async () => {
+    setShowConfirmModal(false);
+    await onRaiseIssues(selectedIssuesToRaise);
   };
 
   if (loading) {
@@ -49,7 +81,7 @@ export default function AnalysisResultsPanel({
       <div className="mb-4 flex items-center justify-between gap-3">
         <h2 className="text-lg font-semibold text-white">Analysis Results</h2>
         <button
-          onClick={onRaiseIssues}
+          onClick={handleRaiseIssuesClick}
           disabled={!results || results.length === 0 || raisingIssues || !canRaiseIssues}
           className="rounded-md border border-cyan-300/35 bg-cyan-400/10 px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-cyan-100 transition hover:bg-cyan-400/20 disabled:cursor-not-allowed disabled:opacity-45"
         >
@@ -73,6 +105,20 @@ export default function AnalysisResultsPanel({
           />
         ))}
       </div>
+
+      <IssueSelectionModal
+        isOpen={showSelectionModal}
+        issues={results || []}
+        onConfirm={handleIssueSelectionConfirm}
+        onCancel={() => setShowSelectionModal(false)}
+      />
+
+      <RaiseIssuesConfirmModal
+        isOpen={showConfirmModal}
+        issueCount={selectedIssuesToRaise.length}
+        onConfirm={handleConfirmRaiseIssues}
+        onCancel={() => setShowConfirmModal(false)}
+      />
     </div>
   );
 }

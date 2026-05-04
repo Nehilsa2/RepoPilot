@@ -190,8 +190,10 @@ export default function Workspace() {
     }
   };
 
-  const handleRaiseIssues = async () => {
-    if (!results || results.length === 0) {
+  const handleRaiseIssues = async (selectedIssues = null) => {
+    const issuesToRaise = selectedIssues && selectedIssues.length > 0 ? selectedIssues : results;
+    
+    if (!issuesToRaise || issuesToRaise.length === 0) {
       return;
     }
 
@@ -200,10 +202,29 @@ export default function Workspace() {
       setError(null);
       setRaiseMessage(null);
 
-      const data = await raiseIssues(repoUrl, results);
-      setRaiseMessage(`Raised ${data.totalRaised} issues in GitHub repository.`);
+      const data = await raiseIssues(repoUrl, issuesToRaise);
+      
+      if (data.rateLimitExceeded) {
+        const resetTime = data.rateLimitReset 
+          ? new Date(data.rateLimitReset * 1000).toLocaleTimeString()
+          : 'shortly';
+        setRaiseMessage(
+          `${data.message} Rate limit resets at ${resetTime}.`
+        );
+      } else {
+        setRaiseMessage(`Raised ${data.totalRaised} issue${data.totalRaised !== 1 ? 's' : ''} in GitHub repository.`);
+      }
     } catch (err) {
-      setError(err.message || "Failed to raise issues in GitHub.");
+      if (err.code === 'GITHUB_RATE_LIMIT_EXCEEDED') {
+        const resetTime = err.rateLimitReset 
+          ? new Date(err.rateLimitReset * 1000).toLocaleTimeString()
+          : 'shortly';
+        setError(
+          `GitHub API rate limit exceeded. No issues could be created. Rate limit resets at ${resetTime}. Please try again later.`
+        );
+      } else {
+        setError(err.message || "Failed to raise issues in GitHub.");
+      }
       console.error(err);
     } finally {
       setRaisingIssues(false);
