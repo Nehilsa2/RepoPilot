@@ -4,6 +4,7 @@ import { analyzeFiles, buildGithubLoginHref, getCurrentUser, getMyRepos, getRepo
 import RepositoryPanel from "../components/RepositoryPanel";
 import FileTreePanel from "../components/FileTreePanel";
 import AnalysisResultsPanel from "../components/AnalysisResultsPanel";
+import FileLimitModal from "../components/FileLimitModal";
 import LoadingSpinner from "../components/LoadingSpinner";
 import WorkspaceBackground from "../components/workspace/WorkspaceBackground";
 import WorkspaceHeader from "../components/workspace/WorkspaceHeader";
@@ -34,6 +35,7 @@ export default function Workspace() {
   const [githubUser, setGithubUser] = useState("");
   const [repoCount, setRepoCount] = useState(0);
   const [analysisFilesUsed, setAnalysisFilesUsed] = useState(0);
+  const [showLimitModal, setShowLimitModal] = useState(false);
 
   useEffect(() => {
     const bootstrapAuth = async () => {
@@ -308,6 +310,7 @@ export default function Workspace() {
               remainingFiles={remainingFiles}
               onAnalyze={handleAnalyze}
               loading={loading}
+              onLimitReached={() => setShowLimitModal(true)}
             />
             <AnalysisResultsPanel
               results={results}
@@ -320,6 +323,11 @@ export default function Workspace() {
           </div>
         </main>
       </div>
+      <FileLimitModal
+        isOpen={showLimitModal}
+        remainingFiles={remainingFiles}
+        onClose={() => setShowLimitModal(false)}
+      />
       <WorkspaceMotionStyles />
     </div>
   );

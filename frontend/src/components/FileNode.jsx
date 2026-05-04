@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ChevronRight, File, Folder } from "lucide-react";
 
-export default function FileNode({ name, node, path, selectedFiles, setSelectedFiles, maxFiles }) {
+export default function FileNode({ name, node, path, selectedFiles, setSelectedFiles, maxFiles, onLimitReached }) {
   const [open, setOpen] = useState(false);
   const isFile = node === null;
 
@@ -11,6 +11,7 @@ export default function FileNode({ name, node, path, selectedFiles, setSelectedF
     } else if (selectedFiles.length < maxFiles) {
       setSelectedFiles([...selectedFiles, path]);
     } else {
+      onLimitReached?.();
       return;
     }
   };
@@ -58,6 +59,7 @@ export default function FileNode({ name, node, path, selectedFiles, setSelectedF
               selectedFiles={selectedFiles}
               setSelectedFiles={setSelectedFiles}
               maxFiles={maxFiles}
+              onLimitReached={onLimitReached}
             />
           </div>
         ))}

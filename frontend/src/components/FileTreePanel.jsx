@@ -8,6 +8,7 @@ export default function FileTreePanel({
   remainingFiles,
   onAnalyze,
   loading,
+  onLimitReached,
 }) {
   return (
     <div className="rounded-lg bg-gradient-to-br from-slate-800 to-slate-900 border border-white/10 p-6 flex flex-col">
@@ -35,6 +36,7 @@ export default function FileTreePanel({
                 selectedFiles={selectedFiles}
                 setSelectedFiles={setSelectedFiles}
                 maxFiles={remainingFiles}
+                onLimitReached={onLimitReached}
               />
             ))}
           </div>
