@@ -210,7 +210,8 @@ const getCurrentUser = async (req, res) => {
   return res.json({
     user: {
       githubId: req.user.githubId,
-      username: req.user.username
+      username: req.user.username,
+      analysisFilesUsed: Number(req.user.analysisFilesUsed || 0)
     }
   });
 };

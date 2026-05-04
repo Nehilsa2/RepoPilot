@@ -24,7 +24,8 @@ async function requireGithubAuth(req, res, next) {
   req.user = {
     id: String(user._id),
     githubId: user.githubId,
-    username: user.username
+    username: user.username,
+    analysisFilesUsed: Number(user.analysisFilesUsed || 0)
   };
 
   return next();

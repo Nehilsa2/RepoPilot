@@ -11,6 +11,8 @@ import WorkspaceIntroCard from "../components/workspace/WorkspaceIntroCard";
 import WorkspaceMotionStyles from "../components/workspace/WorkspaceMotionStyles";
 import { clearGithubAuth, getGithubUser, isGithubLoggedIn, saveGithubAuth } from "../services/auth";
 
+const MAX_FILES_PER_ACCOUNT = 5;
+
 export default function Workspace() {
   const [searchParams] = useSearchParams();
   const initialRepoUrl = searchParams.get("repo") || "";
@@ -31,6 +33,7 @@ export default function Workspace() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [githubUser, setGithubUser] = useState("");
   const [repoCount, setRepoCount] = useState(0);
+  const [analysisFilesUsed, setAnalysisFilesUsed] = useState(0);
 
   useEffect(() => {
     const bootstrapAuth = async () => {
@@ -59,10 +62,12 @@ export default function Workspace() {
         const data = await getCurrentUser();
         setIsLoggedIn(true);
         setGithubUser(data.user?.username || getGithubUser() || "");
+        setAnalysisFilesUsed(Number(data.user?.analysisFilesUsed || 0));
       } catch {
         clearGithubAuth();
         setIsLoggedIn(false);
         setGithubUser("");
+        setAnalysisFilesUsed(0);
       } finally {
         setAuthChecked(true);
       }
@@ -130,6 +135,9 @@ export default function Workspace() {
       setRepoAccess(data.access || null);
       setSelectedFiles([]);
       setResults(null);
+      if (data.quota) {
+        setAnalysisFilesUsed(Number(data.quota.used || 0));
+      }
     } catch (err) {
       setError(err.message || "Failed to fetch repository. Please check the URL and try again.");
       console.error(err);
@@ -216,6 +224,7 @@ export default function Workspace() {
     setGithubUser("");
     setRepos([]);
     setRepoCount(0);
+    setAnalysisFilesUsed(0);
     setTree(null);
     setSelectedFiles([]);
     setResults(null);
@@ -225,6 +234,8 @@ export default function Workspace() {
   const issuePermissionMessage = repoAccess && !repoAccess.canCreateIssues
     ? "Issue creation is disabled for this repository. You can still analyze code, but raising issues is only enabled for repositories you can push to with this GitHub account."
     : "";
+
+  const remainingFiles = Math.max(0, MAX_FILES_PER_ACCOUNT - analysisFilesUsed);
 
   if (!authChecked) {
     return <LoadingSpinner message="Verifying session..." />;
@@ -242,6 +253,7 @@ export default function Workspace() {
           repoUrl={repoUrl}
           selectedCount={selectedFiles.length}
           resultCount={results ? results.length : 0}
+          remainingFiles={remainingFiles}
         />
 
         <main className="mx-auto max-w-7xl px-4 py-7 sm:px-6 lg:px-8">
@@ -293,6 +305,7 @@ export default function Workspace() {
               tree={tree}
               selectedFiles={selectedFiles}
               setSelectedFiles={setSelectedFiles}
+              remainingFiles={remainingFiles}
               onAnalyze={handleAnalyze}
               loading={loading}
             />

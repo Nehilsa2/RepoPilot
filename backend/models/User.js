@@ -15,6 +15,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  analysisFilesUsed: {
+    type: Number,
+    default: 0
+  },
   sessionToken: {
     type: String,
     default: null,

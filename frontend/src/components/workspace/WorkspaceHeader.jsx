@@ -1,7 +1,7 @@
 import { Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 
-export default function WorkspaceHeader({ repoUrl, selectedCount, resultCount }) {
+export default function WorkspaceHeader({ repoUrl, selectedCount, resultCount, remainingFiles }) {
   return (
     <header className="sticky top-0 z-40 border-b border-white/10 backdrop-blur-md">
       <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 lg:px-8 md:flex-row md:items-center md:justify-between">
@@ -16,9 +16,10 @@ export default function WorkspaceHeader({ repoUrl, selectedCount, resultCount })
           </div>
         </Link>
 
-        <div className="grid grid-cols-3 gap-2 sm:gap-3">
+        <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-4">
           <MetricPill label="Selected" value={String(selectedCount)} />
           <MetricPill label="Reports" value={String(resultCount)} />
+          <MetricPill label="Remaining" value={String(remainingFiles)} />
           <MetricPill label="Mode" value="AI" icon />
         </div>
       </div>

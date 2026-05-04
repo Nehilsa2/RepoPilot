@@ -6,7 +6,9 @@ const { runESLint } = require('../services/eslintService');
 const selectImportantChunks = require('../utils/selectImportantChunks');
 const batchFiles = require('../utils/batchFiles');
 const buildCombinedPrompt = require('../utils/buildCombinedPrompt');
+const User = require('../models/User');
 
+const MAX_FILES_PER_ACCOUNT = 5;
 const MAX_BATCH_SIZE = 3;
 const MAX_ISSUES_TO_RAISE = 25;
 
@@ -25,6 +27,8 @@ const normalizeIssue = (issue) => {
 };
 
 const analyzeFiles = async (req, res) => {
+  let reservedFiles = 0;
+
   try {
     const { repoUrl, selectedFiles } = req.body;
 
@@ -32,15 +36,37 @@ const analyzeFiles = async (req, res) => {
       return res.status(400).json({ error: "No files selected" });
     }
 
-    // 🔒 Free tier limit
-    if (selectedFiles.length > 10) {
+    // 🔒 Account limit
+    if (selectedFiles.length > MAX_FILES_PER_ACCOUNT) {
       return res.status(403).json({
-        error: "Max 10 files allowed"
+        error: `Max ${MAX_FILES_PER_ACCOUNT} files allowed per account`
       });
     }
 
     const { owner, repo } = parseRepoUrl(repoUrl);
     const access = await getRepoAccess(owner, repo, req.githubToken);
+
+    const reservedUser = await User.findOneAndUpdate(
+      {
+        _id: req.user.id,
+        $expr: {
+          $lte: [
+            { $add: [{ $ifNull: ['$analysisFilesUsed', 0] }, selectedFiles.length] },
+            MAX_FILES_PER_ACCOUNT
+          ]
+        }
+      },
+      { $inc: { analysisFilesUsed: selectedFiles.length } },
+      { new: true }
+    );
+
+    if (!reservedUser) {
+      return res.status(403).json({
+        error: `Analysis limit reached. Max ${MAX_FILES_PER_ACCOUNT} files allowed per account.`
+      });
+    }
+
+    reservedFiles = selectedFiles.length;
 
     // 🧠 STEP 1 — Batch files
     const batches = batchFiles(selectedFiles, MAX_BATCH_SIZE);
@@ -139,10 +165,23 @@ ${combinedPrompt}
     return res.json({
       totalFiles: finalResults.length,
       files: finalResults,
-      access
+      access,
+      quota: {
+        limit: MAX_FILES_PER_ACCOUNT,
+        used: reservedUser.analysisFilesUsed,
+        remaining: Math.max(0, MAX_FILES_PER_ACCOUNT - reservedUser.analysisFilesUsed)
+      }
     });
 
   } catch (error) {
+    if (reservedFiles > 0 && req.user?.id) {
+      await User.findByIdAndUpdate(req.user.id, {
+        $inc: { analysisFilesUsed: -reservedFiles }
+      }).catch((rollbackError) => {
+        console.error('Quota rollback failed:', rollbackError.message);
+      });
+    }
+
     console.error("Analysis Error:", error.message);
 
     res.status(500).json({

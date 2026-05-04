@@ -5,6 +5,7 @@ export default function FileTreePanel({
   tree,
   selectedFiles,
   setSelectedFiles,
+  remainingFiles,
   onAnalyze,
   loading,
 }) {
@@ -15,7 +16,9 @@ export default function FileTreePanel({
         <p className="text-xs text-white/60 mt-1">
           {selectedFiles.length > 0
             ? `${selectedFiles.length} file${selectedFiles.length !== 1 ? 's' : ''} selected for analysis`
-            : "Select files to analyze"}
+            : remainingFiles > 0
+              ? `Select up to ${remainingFiles} more file${remainingFiles !== 1 ? 's' : ''} to analyze`
+              : 'Analysis quota reached for this account'}
         </p>
       </div>
 
@@ -31,6 +34,7 @@ export default function FileTreePanel({
                 path={key}
                 selectedFiles={selectedFiles}
                 setSelectedFiles={setSelectedFiles}
+                maxFiles={remainingFiles}
               />
             ))}
           </div>
@@ -44,7 +48,7 @@ export default function FileTreePanel({
       {/* Analyze Button */}
       <button
         onClick={onAnalyze}
-        disabled={!tree || loading || selectedFiles.length === 0}
+        disabled={!tree || loading || selectedFiles.length === 0 || remainingFiles === 0}
         className="w-full py-3 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium flex items-center justify-center gap-2 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
       >
         <Zap className="w-4 h-4" />
@@ -53,7 +57,9 @@ export default function FileTreePanel({
 
       {selectedFiles.length === 0 && (
         <p className="text-xs text-white/50 text-center mt-3">
-          Select at least one file to analyze
+          {remainingFiles > 0
+            ? `Select at least one file to analyze, up to ${remainingFiles} more`
+            : 'This account has reached the analysis limit'}
         </p>
       )}
     </div>

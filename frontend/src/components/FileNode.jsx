@@ -1,15 +1,17 @@
 import { useState } from "react";
 import { ChevronRight, File, Folder } from "lucide-react";
 
-export default function FileNode({ name, node, path, selectedFiles, setSelectedFiles }) {
+export default function FileNode({ name, node, path, selectedFiles, setSelectedFiles, maxFiles }) {
   const [open, setOpen] = useState(false);
   const isFile = node === null;
 
   const toggleSelect = () => {
     if (selectedFiles.includes(path)) {
       setSelectedFiles(selectedFiles.filter((file) => file !== path));
-    } else {
+    } else if (selectedFiles.length < maxFiles) {
       setSelectedFiles([...selectedFiles, path]);
+    } else {
+      return;
     }
   };
 
@@ -19,6 +21,7 @@ export default function FileNode({ name, node, path, selectedFiles, setSelectedF
         <input
           type="checkbox"
           checked={selectedFiles.includes(path)}
+          disabled={!selectedFiles.includes(path) && selectedFiles.length >= maxFiles}
           onChange={toggleSelect}
           className="w-4 h-4 rounded border border-white/20 bg-white/5 accent-blue-500 cursor-pointer"
         />
@@ -54,6 +57,7 @@ export default function FileNode({ name, node, path, selectedFiles, setSelectedF
               path={`${path}/${child}`}
               selectedFiles={selectedFiles}
               setSelectedFiles={setSelectedFiles}
+              maxFiles={maxFiles}
             />
           </div>
         ))}
