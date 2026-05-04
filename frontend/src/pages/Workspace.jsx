@@ -275,7 +275,6 @@ export default function Workspace() {
         <WorkspaceHeader
           repoUrl={repoUrl}
           selectedCount={selectedFiles.length}
-          resultCount={results ? results.length : 0}
           remainingFiles={remainingFiles}
         />
 
